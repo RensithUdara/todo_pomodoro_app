@@ -23,6 +23,12 @@ class HomePage extends StatelessWidget {
         elevation: 0,
         backgroundColor: Colors.transparent,
         iconTheme: const IconThemeData(color: Colors.black87), // Dark icons
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () => _showSettingsModal(context),
+          ),
+        ],
       ),
       extendBodyBehindAppBar: true,
       body: Stack(
@@ -127,7 +133,8 @@ class HomePage extends StatelessWidget {
         (taskProvider.remainingTime ~/ 60).toString().padLeft(2, '0');
     final seconds =
         (taskProvider.remainingTime % 60).toString().padLeft(2, '0');
-    final progress = 1 - (taskProvider.remainingTime / 1500);
+    final progress =
+        1 - (taskProvider.remainingTime / taskProvider.customDuration);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 20),
@@ -297,6 +304,88 @@ class HomePage extends StatelessWidget {
                 },
                 child: const Text(
                   'Add Task',
+                  style: TextStyle(fontSize: 18),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showSettingsModal(BuildContext context) {
+    final taskProvider = Provider.of<TaskProvider>(context, listen: false);
+    int minutes = taskProvider.customDuration ~/ 60;
+    final TextEditingController minutesController =
+        TextEditingController(text: minutes.toString());
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(25.0)),
+      ),
+      isScrollControlled: true, // To make modal full height
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 20,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+          ),
+          child: Wrap(
+            children: [
+              Center(
+                child: Container(
+                  height: 5,
+                  width: 50,
+                  margin: const EdgeInsets.only(bottom: 20),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2.5),
+                  ),
+                ),
+              ),
+              const Text(
+                'Set Timer Duration',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 15),
+              TextField(
+                controller: minutesController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: 'Minutes',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orangeAccent,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 15),
+                  minimumSize: const Size(double.infinity, 0),
+                ),
+                onPressed: () {
+                  int? newMinutes = int.tryParse(minutesController.text.trim());
+                  if (newMinutes != null && newMinutes > 0) {
+                    taskProvider.setCustomDuration(newMinutes * 60);
+                    Navigator.of(context).pop();
+                  }
+                },
+                child: const Text(
+                  'Save',
                   style: TextStyle(fontSize: 18),
                 ),
               ),
